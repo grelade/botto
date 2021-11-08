@@ -53,7 +53,7 @@ def load_cfg(file = 'cfg/config.yml'):
 
 def load_track(file = 'tracks/new_coin_limit.yml'):
     
-    with open(filename,'r') as fp:
+    with open(file,'r') as fp:
         track_cfg = yaml.load(fp, Loader=yaml.FullLoader)
     return track_cfg
 
