@@ -10,6 +10,7 @@ from funcs import load_cfg, load_auth, load_track
 from signal import SIGINT, SIGTERM
 from funcs import error_handler
 from funcs import set_argparser
+from funcs import create_logger
 
 from cpu import cpu_proc
 from agent import agent_proc
@@ -20,13 +21,14 @@ from data_harvester import harvester_proc
 async def main(args):
     try:
 
+        logger = create_logger('botto')
 #         logname = 'botto-agent.log'
-        log_format = "%(asctime)s : %(name)s : %(funcName)s() : %(message)s"
+#         log_format = "%(asctime)s : %(name)s : %(funcName)s() : %(message)s"
 
 #         if cfg['general']['logging'] == 'to_file':
 #             logging.basicConfig(filename=logname,filemode='a',format=log_format, level=logging.INFO)
 #         elif cfg['general']['logging'] == 'to_screen':
-        logging.basicConfig(format=log_format, level=logging.INFO)
+#         logging.basicConfig(format=log_format, level=logging.INFO)
 
         auth = load_auth(file=args.auth_file)    
 
