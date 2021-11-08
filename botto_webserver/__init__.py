@@ -18,7 +18,7 @@ def create_app(path='/home/grela/local_project/binance/botto-v2'):
     app = Flask(__name__, instance_path=path,instance_relative_config=True)
     app.config.from_mapping(
         SECRET_KEY='dev',
-        DATABASE=os.path.join(app.instance_path,'cfg/config.db'),
+        DATABASE=os.path.join(app.instance_path,'cfg/main.db'),
     )
     
     #init database
