@@ -1,0 +1,34 @@
+---
+    general:    
+        local_timezone: Europe/Warsaw # local timezone in which all datetime objects will work
+        save_books_interval: 300 # how often save the books
+        run_mode: mock #use either run, test or mock keywords 
+        # run - everything works as intended
+        # test - to check the pipeline, no web data is used
+        # mock - simulate real conditions (pre-downloaded telegram data and real binance client w/o buying/selling)
+#         logging: to_file #to_file, to_screen; specify logging mode
+        logging: to_screen #to_file, to_screen; specify logging mode
+
+    crawler:
+        crawl_type: no_crawl # new_coins, no_crawl 
+#         crawl_type: new_coins # new_coins, no_crawl         
+        pair: DYDXUSDT
+        
+    telegram:
+        channel: https://t.me/binance_announcements # binance channel address
+        scan_interval: 5 # how often to scan binance telegram channel
+#         scan_interval: 1800 # how often to scan binance telegram channel
+        
+    buying:
+        pairing: USDT # BTCUSDT will be bought for example
+        prep_time: 120 # how much preparation time (in seconds) before the initial offering
+        
+    trading:
+        agent_type: trailing #trailing, basic; type of trading agent
+        agent_params:
+            ma_window: 10 # (trailing) moving average window size
+            stop_loss: 5 # (trailing,basic) stop-loss percentage points
+            take_profit: 10 # (trailing,basic) take-profit percentage points
+            
+        quantity: 15.0 # In your pairing coin (best to be a little above the MIN_NOTIONAL due to LOT_SIZE cuts
+        ensure_min_notional: True # ensure quantity is larger than MIN_NOTIONAL (10 USDT last time checked)
