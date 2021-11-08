@@ -10,7 +10,7 @@ import json
 import pandas as pd
 import re
 import numpy as np
-import argparser
+import argparse
 
 from signal import SIGINT, SIGTERM
 
