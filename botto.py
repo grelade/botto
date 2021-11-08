@@ -20,7 +20,7 @@ async def main(track_cfg):
                  'isolation_level':None,
                  'check_same_thread':False}    
 
-        cfg = await load_cfg(db_args)
+        #cfg = await load_cfg(db_args)
 
 #         logname = 'botto-agent.log'
         log_format = "%(asctime)s : %(name)s : %(funcName)s() : %(message)s"
