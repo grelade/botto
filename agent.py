@@ -1,6 +1,7 @@
+import aiosqlite
 import asyncio
 import sqlite3
-import aiosqlite
+
 import yaml
 import logging
 import pandas as pd

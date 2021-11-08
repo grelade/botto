@@ -1,16 +1,10 @@
-import argparse
-import sys
-import logging
 import asyncio
-import yaml
+import logging
+from signal import SIGINT, SIGTERM
 
 from funcs import create_binance_client, create_telegram_client
 from funcs import load_cfg, load_auth, load_track
-
-from signal import SIGINT, SIGTERM
-from funcs import error_handler
-from funcs import set_argparser
-from funcs import create_logger
+from funcs import error_handler, set_argparser, create_logger
 
 from cpu import cpu_proc
 from agent import agent_proc
@@ -54,7 +48,6 @@ async def main(args):
         tasks += [asyncio.create_task(cpu.run_server())]
 
         tasks += [asyncio.create_task(crawler.run_server())]
-#         tasks += [asyncio.create_task(crawler.emit_newcoin())]
 
         tasks += [asyncio.create_task(trader.run_server())]
         tasks += [asyncio.create_task(trader.update_loop())]
@@ -76,7 +69,6 @@ async def main(args):
         await trader.close()
         await cpu.close()
         await crawler.close()
-
 
 
 if __name__ == "__main__":
