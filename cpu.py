@@ -17,7 +17,7 @@ from funcs import error_handler
 from funcs import estimate_price
 from funcs import set_argparser
 
-from sockets import order_client, agent_client, harvester_client, crawler_client #outputs
+from sockets import order_socket_req, agent_socket_req, harvester_socket_req, crawler_socket_req #outputs
 # from sockets import newcoin_socket_recv #inputs
 
 from binance.enums import *
@@ -31,25 +31,25 @@ class cpu_proc:
         self.logger = create_logger(name='cpu')
 
     async def send_order(self,request):
-        with order_client() as sock:
+        with order_socket_req() as sock:
             await sock.send_json(request)
             response = await sock.recv_json()
             return response
             
     async def add_harvester(self,request):
-        with harvester_client() as sock:
+        with harvester_socket_req() as sock:
             await sock.send_json(request)
             response = await sock.recv_json()
             return response
         
     async def add_agent(self,request):
-        with agent_client() as sock:
+        with agent_socket_req() as sock:
             await sock.send_json(request)
             response = await sock.recv_json()
             return response
         
     async def add_crawler(self,request):
-        with crawler_client() as sock:
+        with crawler_socket_req() as sock:
             await sock.send_json(request)
             response = await sock.recv_json()
             return response
@@ -202,7 +202,7 @@ class cpu_proc:
         last_price = float(last_price['price'])
         return last_price            
             
-    async def run(self):
+    async def run_server(self):
         self.logger.info('Starting cpu_proc()')
         if self.track_cfg['track_mode'] == 'coin':
             await self.coin_track()
@@ -225,12 +225,11 @@ async def main(args):
         bclient = await create_binance_client(auth['binance_api'],
                                               auth['binance_secret'])    
 
-
         proc = cpu_proc(client = bclient,
                         args = args)
 
         tasks = []
-        tasks += [asyncio.create_task(proc.run())]
+        tasks += [asyncio.create_task(proc.run_server())]
 
         await asyncio.gather(*tasks)
 
