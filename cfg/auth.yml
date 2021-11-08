@@ -1,0 +1,10 @@
+---
+  # CLIENT DETAILS
+  binance_api: "BINANCE API KEY"
+  binance_secret: "BINANCE SECRET KEY"
+
+  telegram_api_id: "TELEGRAM API ID"
+  telegram_api_hash: "TELEGRAM API HASH"
+  telegram_phone: "TELEGRAM PHONE NUMBER"
+  
+  coinapi_apikey: "COINAPI API KEY"
