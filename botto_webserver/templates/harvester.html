@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% block title %}
+List of harvesters
+{% endblock %}
+{% block content %}
+
+<script src = {{url_for('static',filename='harvester.js')}}></script>
+
+<div class="btn-toolbar mb-2 mb-md-0">
+  <button type="button" class="btn btn-sm btn-outline-secondary" onclick="socket.emit('get_harvester_list')">
+    <span data-feather="refresh-cw"></span>
+    Refresh
+  </button>
+</div>
+</div>
+
+<!-- <input type="text" id="fname" name="fname" onchange="cb(this.value)">
+<div id="chart" class="chart"></div>
+<div id="png_chart"></div> -->
+
+<div class="table-responsive">
+    <table class="table table-sm table-hover">
+      <thead class="thead-dark">
+        <tr>
+          <th  scope="col">active</th>  
+          <th scope="col">id</th>
+          <th class="w-50" scope="col">name</th>
+          <th class="w-50" scope="col">symbol</th>
+          <th scope="col">size</th>
+          <th class="d-flex justify-content-center" scope="col"><div class="border bg-light p-1" id="list_time">last db chck: </div></th>
+        </tr>
+      </thead>
+      <tbody id="tbody">
+<!--         {% for h in hlist %}
+        <tr>
+          <td>
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" disabled {%if h[3]==1%} checked {%endif%}>
+            </div>
+          </td>
+          <td>{{ h[0] }}</td>
+          <td>{{ h[1] }}</td>
+          <td>{{ h[2] }}</td>
+          <td ><div class="btn-group w-100">
+              <button type="button" class="btn btn-sm btn-outline-secondary">Edit</button>
+              <button type="button" class="btn btn-sm btn-outline-secondary" disabled>Update</button></div></td>
+         
+        </tr>
+        {% endfor %} -->
+<!--           <thead>
+
+          <tr>
+          <td></td>
+          <td></td>
+          <td> <div class="input-group input-group-sm">
+  <input type="text" class="form-control" placeholder="new name" aria-label="name" aria-describedby="basic-addon1">
+              </div>
+            </td>
+
+          <td>
+              <div class="input-group input-group-sm">
+  <input type="text" class="form-control" placeholder="new symbol" aria-label="symbol" aria-describedby="basic-addon1">
+              </div>
+          </td>
+          <td >
+              <button type="button" class="btn btn-sm btn-outline-secondary w-100">Create new</button>
+          </td>
+        </tr>
+          </thead> -->
+      </tbody>
+    </table>
+    
+</div>
+
+{% endblock %}
