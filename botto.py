@@ -21,14 +21,8 @@ from data_harvester import harvester_proc
 async def main(args):
     try:
 
-        logger = create_logger('botto')
-#         logname = 'botto-agent.log'
-#         log_format = "%(asctime)s : %(name)s : %(funcName)s() : %(message)s"
-
-#         if cfg['general']['logging'] == 'to_file':
-#             logging.basicConfig(filename=logname,filemode='a',format=log_format, level=logging.INFO)
-#         elif cfg['general']['logging'] == 'to_screen':
-#         logging.basicConfig(format=log_format, level=logging.INFO)
+        log_format = "%(asctime)s : %(name)s : %(funcName)s() : %(message)s"
+        logging.basicConfig(format=log_format, level=logging.INFO)
 
         auth = load_auth(file=args.auth_file)    
 
