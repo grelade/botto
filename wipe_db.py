@@ -1,7 +1,7 @@
 import aiosqlite
 import asyncio
 
-db_args={'database':'cfg/config.db',
+db_args={'database':'cfg/main.db',
                  'isolation_level':None,
                  'check_same_thread':False}   
 

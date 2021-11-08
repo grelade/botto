@@ -1,0 +1,6 @@
+---
+db:
+    database: "cfg/main.db"
+    isolation_level: null
+    check_same_thread: False
+    

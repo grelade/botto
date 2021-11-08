@@ -10,6 +10,7 @@ import json
 import pandas as pd
 import re
 import numpy as np
+import argparser
 
 from signal import SIGINT, SIGTERM
 
@@ -31,18 +32,30 @@ async def create_telegram_client(api_id: str,
 
 def load_auth(file = 'cfg/auth.yml'):
     
-    with open(file) as file:
-        auth = yaml.load(file, Loader=yaml.FullLoader)
+    with open(file) as fp:
+        auth = yaml.load(fp, Loader=yaml.FullLoader)
     return auth
 
-async def load_cfg(db_args):
-    cfg = dict()
-    async with aiosqlite.connect(**db_args) as db:
-         async with db.execute("SELECT * FROM config") as cursor:
-                async for row in cursor:
-                    cfg[row[1]] = json.loads(row[2])
+# async def load_cfg(db_args):
+#     cfg = dict()
+#     async with aiosqlite.connect(**db_args) as db:
+#          async with db.execute("SELECT * FROM config") as cursor:
+#                 async for row in cursor:
+#                     cfg[row[1]] = json.loads(row[2])
                     
+#     return cfg
+
+def load_cfg(file = 'cfg/config.yml'):
+    
+    with open(file,'r') as fp:
+        cfg = yaml.load(fp, Loader=yaml.FullLoader)
     return cfg
+
+def load_track(file = 'tracks/new_coin_limit.yml'):
+    
+    with open(filename,'r') as fp:
+        track_cfg = yaml.load(fp, Loader=yaml.FullLoader)
+    return track_cfg
 
 
 async def aio_pd_read_sql(query,db):
@@ -150,3 +163,16 @@ async def estimate_price(coinapi_apikey,base_asset,time_start,time_end,quote_ass
     rlow_av = rlow_av/len(data)
     r_av = (rhigh_av+rlow_av)/2
     return {'price_average':r_av,'price_high_average':rhigh_av,'price_low_average':rlow_av}
+
+
+def set_argparser():
+    
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument('--cfg_file', default='cfg/config.yml', type=str)
+    parser.add_argument('--auth_file', default='cfg/auth.yml', type=str)
+    parser.add_argument('--track_file', default='tracks/new_coin_limit.yml', type=str)
+    
+
+    args = parser.parse_args()
+    return args

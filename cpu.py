@@ -8,12 +8,14 @@ import yaml
 import pytz
 from datetime import datetime, timedelta
 
-from funcs import create_binance_client, load_auth, load_cfg
+from funcs import create_binance_client
 from funcs import create_logger
+from funcs import load_cfg, load_auth, load_track
 
 from signal import SIGINT, SIGTERM
 from funcs import error_handler
 from funcs import estimate_price
+from funcs import set_argparser
 
 from sockets import order_client, agent_client, harvester_client, crawler_client #outputs
 # from sockets import newcoin_socket_recv #inputs
@@ -22,10 +24,10 @@ from binance.enums import *
 
 class cpu_proc:
     
-    def __init__(self,client,db_args,track_cfg,**kwargs):
+    def __init__(self,client,args,**kwargs):
         self.client = client
-        self.db_args = db_args
-        self.track_cfg = track_cfg
+        self.args = args
+        self.track_cfg = load_track(self.args.track_file)
         self.logger = create_logger(name='cpu')
 
     async def send_order(self,request):
@@ -215,23 +217,17 @@ class cpu_proc:
         print('cpu close')
         await self.client.close_connection()
         
-async def main(track_cfg):
+async def main(args):
     try:
-        db_args={'database':'cfg/config.db',
-                 'isolation_level':None,
-                 'check_same_thread':False}    
-
-        cfg = await load_cfg(db_args)
-
-        auth = load_auth()    
+        
+        auth = load_auth(args.auth_file)    
 
         bclient = await create_binance_client(auth['binance_api'],
                                               auth['binance_secret'])    
 
 
-        proc = cpu_proc(client=bclient,
-                        db_args=db_args,
-                        track_cfg=track_cfg)
+        proc = cpu_proc(client = bclient,
+                        args = args)
 
         tasks = []
         tasks += [asyncio.create_task(proc.run())]
@@ -244,16 +240,12 @@ async def main(track_cfg):
 
 if __name__ == "__main__":
     
-    if len(sys.argv)>=2:
-        with open(sys.argv[1],'r') as file:
-            track_cfg = yaml.load(file, Loader=yaml.FullLoader)
-    else:
-        raise Exception('need track yaml file')   
-        
+    args = set_argparser()
+    
     loop = asyncio.get_event_loop()
     for sig in (SIGTERM, SIGINT):
         loop.add_signal_handler(sig, error_handler, sig, loop)
-    loop.create_task(main(track_cfg))
+    loop.create_task(main(args))
     loop.run_forever()
     tasks = asyncio.all_tasks(loop=loop)
     for t in tasks:

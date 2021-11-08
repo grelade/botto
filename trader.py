@@ -15,21 +15,26 @@ from binance import AsyncClient as BinanceClient
 from binance import BinanceSocketManager
 from binance.enums import *
 
-from funcs import create_binance_client, load_auth, load_cfg
+from funcs import create_binance_client
+from funcs import load_auth, load_cfg
+
 from funcs import aio_pd_read_sql, id_to_symbol, price_average
 from funcs import create_logger
 
 from signal import SIGINT, SIGTERM
 from funcs import error_handler
+from funcs import set_argparser
 
 from sockets import order_server #inputs
 
 
 class trader_proc:
     
-    def __init__(self,client,db_args,cfg=dict()):
+    def __init__(self,client,args):
         self.client = client
-        self.db_args = db_args
+        self.args = args
+        self.cfg = load_cfg(args.cfg_file)
+        self.db_args = self.cfg['db']
         self.ctx = zmq.asyncio.Context()    
         self.update_refresh_time = 5
         self.mock_orders = False
@@ -373,21 +378,17 @@ class trader_proc:
         print('trader close')
         await self.client.close_connection()    
             
-async def main() -> None:
+async def main(args) -> None:
     try:
-        db_args={'database':'cfg/config.db',
-                 'isolation_level':None,
-                 'check_same_thread':False}    
 
-        cfg = await load_cfg(db_args)
 
-        auth = load_auth()
+        auth = load_auth(args.auth_file)
 
         bclient = await create_binance_client(auth['binance_api'],
                                               auth['binance_secret'])    
 
-        proc = trader_proc(client=bclient,
-                           db_args=db_args)
+        proc = trader_proc(client = bclient,
+                           args = args)
 
         tasks = []
         tasks += [asyncio.create_task(proc.run())]
@@ -398,10 +399,13 @@ async def main() -> None:
         await proc.close()
                 
 if __name__ == "__main__":
+    
+    args = set_argparser()
+    
     loop = asyncio.get_event_loop()
     for sig in (SIGTERM, SIGINT):
         loop.add_signal_handler(sig, error_handler, sig, loop)
-    loop.create_task(main())
+    loop.create_task(main(args))
     loop.run_forever()
     tasks = asyncio.all_tasks(loop=loop)
     for t in tasks:

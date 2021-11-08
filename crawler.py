@@ -17,22 +17,26 @@ import zmq, zmq.asyncio
 
 from binance.enums import *
 
-from funcs import create_binance_client, create_telegram_client, load_auth, load_cfg
+from funcs import create_binance_client, create_telegram_client
 from funcs import extract_url
 from funcs import create_logger
+from funcs import load_cfg, load_auth, load_track
 
 from signal import SIGINT, SIGTERM
 from funcs import error_handler
+from funcs import set_argparser
 
 from sockets import order_client#, newcoin_socket_send #outputs
 from sockets import crawler_server
 
 class crawler_proc:
     
-    def __init__(self,binance_client,telegram_client,db_args,cfg=dict()):
+    def __init__(self,binance_client,telegram_client,args):
         self.bclient = binance_client
         self.tclient = telegram_client
-        self.db_args = db_args
+        self.args = args
+        self.cfg = load_cfg(args.cfg_file)
+        self.db_args = self.cfg['db']
         self.ctx = zmq.asyncio.Context()    
         self.scan_interval = 600
         self.channel_url = 'https://t.me/binance_announcements'
@@ -147,14 +151,8 @@ class crawler_proc:
         await self.bclient.close_connection()    
         await self.tclient.close_connection()    
         
-async def main(cfg) -> None:
+async def main(args) -> None:
     try:
-        db_args={'database':'cfg/config.db',
-                 'isolation_level':None,
-                 'check_same_thread':False}    
-
-        #cfg = await load_cfg(db_args)
-
 #         logname = 'botto-agent.log'
 #         log_format = "%(asctime)s : %(name)s : %(funcName)s() : %(message)s"
 
@@ -163,18 +161,18 @@ async def main(cfg) -> None:
 #         elif cfg['general']['logging'] == 'to_screen':
 #         logging.basicConfig(format=log_format, level=logging.INFO)
 
-        auth = load_auth()
+        auth = load_auth(args.auth_file)
 
         bclient = await create_binance_client(auth['binance_api'],
-                                              auth['binance_secret'])    
+                                              auth['binance_secret'])
+        
         tclient = await create_telegram_client(auth['telegram_api_id'],
                                                auth['telegram_api_hash'],
                                                auth['telegram_phone'])
 
-        proc = crawler_proc(binance_client=bclient,
-                            telegram_client=tclient,
-                            db_args=db_args,
-                            cfg=cfg)
+        proc = crawler_proc(binance_client = bclient,
+                            telegram_client = tclient,
+                            args = args)
         
         tasks = []
         tasks += [asyncio.create_task(proc.run())]
@@ -187,16 +185,12 @@ async def main(cfg) -> None:
         
 if __name__ == "__main__":
 
-    if len(sys.argv)>=2:
-        with open(sys.argv[1],'r') as file:
-            track_cfg = yaml.load(file, Loader=yaml.FullLoader)
-    else:
-        track_cfg = dict()
-
+    args = set_argparser()
+    
     loop = asyncio.get_event_loop()
     for sig in (SIGTERM, SIGINT):
         loop.add_signal_handler(sig, error_handler, sig, loop)
-    loop.create_task(main(cfg=track_cfg))
+    loop.create_task(main(args))
     loop.run_forever()
     tasks = asyncio.all_tasks(loop=loop)
     for t in tasks:

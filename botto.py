@@ -4,10 +4,12 @@ import logging
 import asyncio
 import yaml
 
-from funcs import create_binance_client, create_telegram_client, load_auth, load_cfg
+from funcs import create_binance_client, create_telegram_client
+from funcs import load_cfg, load_auth, load_track
 
 from signal import SIGINT, SIGTERM
 from funcs import error_handler
+from funcs import set_argparser
 
 from cpu import cpu_proc
 from agent import agent_proc
@@ -17,11 +19,6 @@ from data_harvester import harvester_proc
 
 async def main(args):
     try:
-        db_args={'database':'cfg/main.db',
-                 'isolation_level':None,
-                 'check_same_thread':False}
-
-        #cfg = await load_cfg(db_args)
 
 #         logname = 'botto-agent.log'
         log_format = "%(asctime)s : %(name)s : %(funcName)s() : %(message)s"
@@ -31,10 +28,7 @@ async def main(args):
 #         elif cfg['general']['logging'] == 'to_screen':
         logging.basicConfig(format=log_format, level=logging.INFO)
 
-        with open(args.track_file,'r') as file:
-            track_cfg = yaml.load(file, Loader=yaml.FullLoader)
-
-        auth = load_auth(file=args.auth_file)
+        auth = load_auth(file=args.auth_file)    
 
         bclient = await create_binance_client(auth['binance_api'],
                                               auth['binance_secret'])
@@ -43,24 +37,21 @@ async def main(args):
                                                auth['telegram_api_hash'],
                                                auth['telegram_phone'])
 
-        cpu = cpu_proc(client=bclient,
-                       db_args=db_args,
-                       track_cfg=track_cfg)
+        cpu = cpu_proc(client = bclient,
+                       args = args)
 
-        agent = agent_proc(client=bclient,
-                           db_args=db_args)
+        agent = agent_proc(client = bclient,
+                           args = args)
 
-        crawler = crawler_proc(binance_client=bclient,
-                               telegram_client=tclient,
-                               db_args=db_args,
-                               cfg=track_cfg)
+        crawler = crawler_proc(binance_client = bclient,
+                               telegram_client = tclient,
+                               args = args)
 
-        harvester = harvester_proc(client=bclient,
-                                   db_args=db_args)
+        harvester = harvester_proc(client = bclient,
+                                   args = args)
 
-        trader = trader_proc(client=bclient,
-                             db_args=db_args,
-                             cfg=track_cfg)
+        trader = trader_proc(client = bclient,
+                             args = args)
 
         tasks = []
 
@@ -94,12 +85,7 @@ async def main(args):
 
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser()
-
-    parser.add_argument('--auth_file', default='cfg/auth.yml', type=str)
-    parser.add_argument('--track_file', default='tracks/new_coin_limit.yml', type=str)
-
-    args = parser.parse_args()
+    args = set_argparser()
 
     loop = asyncio.get_event_loop()
     for sig in (SIGTERM, SIGINT):
