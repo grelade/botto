@@ -1,0 +1,13 @@
+---
+track_mode: new_coin
+symbol: 
+order_price: 20.0
+harvester_name: testtrack_harvester
+agent_name: testtrack_agent
+agent_type: TRAIL
+agent_order_type: LIMIT
+agent_price_frac: 0.5
+agent_params:
+    stop_loss: 5
+    take_profit: 15
+    ma_window: 15

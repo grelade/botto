@@ -1,0 +1,13 @@
+---
+track_mode: new_coin
+order_price: 20.0
+harvester_name: generic_harvester
+crawler_mock_msg: True
+trader_mock_orders: True
+trader_order_type: MARKET
+agent_name: generic_agent
+agent_type: TRAIL
+agent_params:
+    stop_loss: 5
+    take_profit: 15
+    ma_window: 15

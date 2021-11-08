@@ -1,0 +1,14 @@
+---
+track_mode: coin
+# symbol: AGLDUSDT
+# init_order_id: 6133499 #filled limit order example
+symbol: DYDXUSDT
+init_order_id: 136566066 #new limit order example
+# symbol: DYDXUSDT
+# init_order_id: 136395809 #(filled) market order example
+harvester_name: track0_harvester
+trader_mock_orders: False
+agent_name: track0_agent
+agent_type: MOVING_AVERAGE
+agent_params:
+    data_limit: 10

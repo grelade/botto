@@ -1,0 +1,11 @@
+---
+track_mode: coin
+symbol: DYDXUSDT
+order_price: 11.0
+harvester_name: track1_harvester
+trader_mock_orders: False
+trader_order_type: MARKET
+agent_name: track1_agent
+agent_type: MOVING_AVERAGE
+agent_params:
+    data_limit: 10

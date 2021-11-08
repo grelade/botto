@@ -1,0 +1,18 @@
+---
+track_mode: new_coin
+order_price: 50.0
+harvester_name: generic_harvester
+crawler_mock_msg: False
+trader_mock_orders: False
+trader_order_type: LIMIT
+trader_price_frac: 1.2
+agent_name: generic_agent
+agent_type: MOVING_AVERAGE
+agent_params:
+    data_limit: 10
+    frac_sell: 1.25
+# agent_type: TRAIL
+# agent_params:
+#     stop_loss: 5
+#     take_profit: 15
+#     ma_window: 15

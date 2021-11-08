@@ -1,0 +1,11 @@
+---
+track_mode: backlog
+backlog_file: backlogs/backlog.csv
+order_price: 20.0
+harvester_name: track3_harvester
+agent_name: track3_agent
+agent_type: TRAIL
+agent_params:
+    stop_loss: 5
+    take_profit: 15
+    ma_window: 15
