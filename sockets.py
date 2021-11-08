@@ -1,5 +1,3 @@
-from cfg import *
-
 import zmq
 import zmq.asyncio
 import asyncio
@@ -43,6 +41,58 @@ class socket_out:
     def __exit__(self, *exc):
         self.sock.close()        
         
+
+
+class harvester_socket_rep(socket_in):
+    
+    def __init__(self):
+        super().__init__(socket_type=stypes['REP'])
+        self.port = 5580
+        
+class harvester_socket_req(socket_out):
+    
+    def __init__(self):
+        super().__init__(socket_type=stypes['REQ'])
+        self.port = 5580
+   
+
+class agent_socket_rep(socket_in):
+    
+    def __init__(self):
+        super().__init__(socket_type=stypes['REP'])
+        self.port = 5590
+        
+class agent_socket_req(socket_out):
+    
+    def __init__(self):
+        super().__init__(socket_type=stypes['REQ'])
+        self.port = 5590
+       
+              
+class order_socket_rep(socket_in):
+    
+    def __init__(self):
+        super().__init__(socket_type=stypes['REP'])
+        self.port = 5560
+        
+class order_socket_req(socket_out):
+    
+    def __init__(self):
+        super().__init__(socket_type=stypes['REQ'])
+        self.port = 5560
+
+class crawler_socket_rep(socket_in):
+    
+    def __init__(self):
+        super().__init__(socket_type=stypes['REP'])
+        self.port = 5600
+        
+class crawler_socket_req(socket_out):
+    
+    def __init__(self):
+        super().__init__(socket_type=stypes['REQ'])
+        self.port = 5600
+        
 class data_socket_recv(socket_in):
     
     def __init__(self):
@@ -54,72 +104,8 @@ class data_socket_send(socket_out):
     def __init__(self):
         super().__init__(socket_type=stypes['PUB'])
         self.port = 5550        
-
-
-class harvester_server(socket_in):
-    
-    def __init__(self):
-        super().__init__(socket_type=stypes['REP'])
-        self.port = 5580
-        
-class harvester_client(socket_out):
-    
-    def __init__(self):
-        super().__init__(socket_type=stypes['REQ'])
-        self.port = 5580
    
-
-class agent_server(socket_in):
-    
-    def __init__(self):
-        super().__init__(socket_type=stypes['REP'])
-        self.port = 5590
-        
-class agent_client(socket_out):
-    
-    def __init__(self):
-        super().__init__(socket_type=stypes['REQ'])
-        self.port = 5590
-       
-              
-class order_server(socket_out):
-    
-    def __init__(self):
-        super().__init__(socket_type=stypes['REP'])
-        self.port = 5560
-        
-class order_client(socket_in):
-    
-    def __init__(self):
-        super().__init__(socket_type=stypes['REQ'])
-        self.port = 5560
-
-class crawler_server(socket_out):
-    
-    def __init__(self):
-        super().__init__(socket_type=stypes['REP'])
-        self.port = 5600
-        
-class crawler_client(socket_in):
-    
-    def __init__(self):
-        super().__init__(socket_type=stypes['REQ'])
-        self.port = 5600
-            
-# class newcoin_socket_recv(socket_in):
-    
-#     def __init__(self):
-#         super().__init__(socket_type=stypes['SUB'])
-#         self.port = 5570
-
-# class newcoin_socket_send(socket_out):
-    
-#     def __init__(self):
-#         super().__init__(socket_type=stypes['PUB'])
-#         self.port = 5570
-
-        
-class data_socket_recv_aggr:
+class data_aggregated_socket_recv:
 
     def __init__(self):
 

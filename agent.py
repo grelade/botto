@@ -18,8 +18,8 @@ from funcs import set_argparser
 from signal import SIGINT, SIGTERM
 from funcs import error_handler
 
-from sockets import order_client #outputs
-from sockets import data_socket_recv_aggr,agent_server #inputs
+from sockets import order_socket_req #outputs
+from sockets import data_aggregated_socket_recv,agent_socket_rep #inputs
 
 
 from agent_types import agent_ma, agent_trail, agent_dict, dcn
@@ -99,7 +99,7 @@ class agent_proc:
         self.agents_obj[id] = agent_dict[type](init_data,**agent_params,logger=self.logger)
         agent = self.agents_obj[id]
         
-        with data_socket_recv_aggr() as sock:
+        with data_aggregated_socket_recv() as sock:
             while True:
                 data = await sock.recv_json()
                 
@@ -123,22 +123,22 @@ class agent_proc:
                         await self.update_db_agents()
                         break
                         
-    async def emit_order(self):
-        with order_client() as sock:
+    async def send_order(self):
+        with order_socket_req() as sock:
             while True:
                 request = await self.orderq.get()
                 await sock.send_json(request)
                 response = await sock.recv_json()
 
     async def run_server(self):
-        with agent_server() as sock:
+        with agent_socket_rep() as sock:
             while True:
                 request = await sock.recv_json()
                 response = await self.insert_db_agent(request)
                 response['resp'] = 200
                 await sock.send_json(response)
 
-    async def run(self):
+    async def agent_loop(self):
         self.logger.info('Starting agent_proc()')
         
         while True:
@@ -183,8 +183,8 @@ async def main(args) -> None:
                           args=args)
 
         tasks = []
-        tasks += [asyncio.create_task(proc.run())]
-        tasks += [asyncio.create_task(proc.emit_order())]
+        tasks += [asyncio.create_task(proc.agent_loop())]
+        tasks += [asyncio.create_task(proc.send_order())]
         tasks += [asyncio.create_task(proc.run_server())]
         await asyncio.gather(*tasks)
         

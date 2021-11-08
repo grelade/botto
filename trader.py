@@ -25,7 +25,7 @@ from signal import SIGINT, SIGTERM
 from funcs import error_handler
 from funcs import set_argparser
 
-from sockets import order_server #inputs
+from sockets import order_socket_rep #inputs
 
 
 class trader_proc:
@@ -298,9 +298,9 @@ class trader_proc:
             await asyncio.sleep(self.update_refresh_time)
 #             break
 
-    async def run(self):
+    async def run_server(self):
             self.logger.info(f'Starting trader_proc()')
-            with order_server() as sock:
+            with order_socket_rep() as sock:
                 while True:
                     order = await sock.recv_json()
                     self.mock_orders = order['mock']
@@ -391,7 +391,7 @@ async def main(args) -> None:
                            args = args)
 
         tasks = []
-        tasks += [asyncio.create_task(proc.run())]
+        tasks += [asyncio.create_task(proc.run_server())]
         tasks += [asyncio.create_task(proc.update_loop())]
         await asyncio.gather(*tasks)  
         

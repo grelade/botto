@@ -16,7 +16,7 @@ from funcs import error_handler
 from funcs import set_argparser
 
 from sockets import data_socket_send #outputs
-from sockets import harvester_server #inputs
+from sockets import harvester_socket_rep #inputs
     
 class harvester_proc:
     
@@ -33,7 +33,7 @@ class harvester_proc:
         self.dbrefresh_time = 5
         self.logger = create_logger(name='data_harvester')
         
-    async def run(self):
+    async def stream_loop(self):
         self.logger.info('Starting harvester_proc()')
         
         while True:
@@ -144,7 +144,7 @@ class harvester_proc:
                 await sock.send_json(rec)
 
     async def run_server(self):
-        with harvester_server() as sock:
+        with harvester_socket_rep() as sock:
             while True:
                 request = await sock.recv_json()
                 response = await self.insert_db_stream(request)
@@ -169,7 +169,7 @@ async def main(args) -> None:
                               args = args)
 
         tasks = []
-        tasks += [asyncio.create_task(proc.run())]
+        tasks += [asyncio.create_task(proc.stream_loop())]
         tasks += [asyncio.create_task(proc.emit_data_raw())]
         tasks += [asyncio.create_task(proc.run_server())]
         await asyncio.gather(*tasks)

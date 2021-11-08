@@ -26,8 +26,7 @@ from signal import SIGINT, SIGTERM
 from funcs import error_handler
 from funcs import set_argparser
 
-from sockets import order_client#, newcoin_socket_send #outputs
-from sockets import crawler_server
+from sockets import crawler_socket_rep
 
 class crawler_proc:
     
@@ -37,12 +36,11 @@ class crawler_proc:
         self.args = args
         self.cfg = load_cfg(args.cfg_file)
         self.db_args = self.cfg['db']
-        self.ctx = zmq.asyncio.Context()    
+   
         self.scan_interval = 600
         self.channel_url = 'https://t.me/binance_announcements'
         self.local_timezone = 'Europe/Warsaw'
         self.pairing = 'USDT'
-        self.newcoinq = asyncio.Queue()
         self.logger = create_logger(name='crawler')
         self.mock_msg = True
         
@@ -117,9 +115,9 @@ class crawler_proc:
                 self.logger.info('no new msg.')
             await asyncio.sleep(self.scan_interval)        
         
-    async def run(self):
+    async def run_server(self):
         self.logger.info('Starting crawler_proc()')
-        with crawler_server() as sock:
+        with crawler_socket_rep() as sock:
             try:
                 while True:
                     self.new_msg_id = 0
@@ -138,14 +136,6 @@ class crawler_proc:
                 await asyncio.sleep(10)
                 pass        
 
-#     async def emit_newcoin(self):
-#         with newcoin_socket_send() as sock:
-#             while True:
-#                 rec = await self.newcoinq.get()
-#                 print(rec)
-#                 await sock.send_json(rec)            
-#                 print('done')
-                
     async def close(self):
         print('crawler close')
         await self.bclient.close_connection()    
@@ -175,8 +165,7 @@ async def main(args) -> None:
                             args = args)
         
         tasks = []
-        tasks += [asyncio.create_task(proc.run())]
-#         tasks += [asyncio.create_task(proc.emit_newcoin())]
+        tasks += [asyncio.create_task(proc.run_server())]
 
         await asyncio.gather(*tasks)
         

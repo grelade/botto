@@ -1,4 +1,7 @@
 ---
+general:
+    timezone: "Europe/Warsaw"
+    pair: "USDT"
 db:
     database: "cfg/main.db"
     isolation_level: null

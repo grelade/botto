@@ -51,20 +51,20 @@ async def main(args):
 
         tasks = []
 
-        tasks += [asyncio.create_task(cpu.run())]
+        tasks += [asyncio.create_task(cpu.run_server())]
 
-        tasks += [asyncio.create_task(crawler.run())]
+        tasks += [asyncio.create_task(crawler.run_server())]
 #         tasks += [asyncio.create_task(crawler.emit_newcoin())]
 
-        tasks += [asyncio.create_task(trader.run())]
+        tasks += [asyncio.create_task(trader.run_server())]
         tasks += [asyncio.create_task(trader.update_loop())]
 
-        tasks += [asyncio.create_task(harvester.run())]
+        tasks += [asyncio.create_task(harvester.stream_loop())]
         tasks += [asyncio.create_task(harvester.emit_data_raw())]
         tasks += [asyncio.create_task(harvester.run_server())]
 
-        tasks += [asyncio.create_task(agent.run())]
-        tasks += [asyncio.create_task(agent.emit_order())]
+        tasks += [asyncio.create_task(agent.agent_loop())]
+        tasks += [asyncio.create_task(agent.send_order())]
         tasks += [asyncio.create_task(agent.run_server())]
 
         await asyncio.gather(*tasks)
