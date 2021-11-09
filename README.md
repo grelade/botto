@@ -20,10 +20,11 @@ Before starting BOTTO you must first prepare the config file in *cfg/auth.yml* w
 #### Tracks
 Tracks describe Botto behaviour. Examples are given in the *tracks* dir.
 ## First run
+
 ```
 python botto.py
 ```
-which runs a strategy *tracks/new_coin_limit.yml* which roughly does four things:
+which uses authentication info from *cfg/auth.yml* (fill it in!) and runs a strategy given by *tracks/new_coin_limit.yml*. It roughly does four things:
 1. **looks** for a **new coin** on the Binance Telegram channel
 2. after receiving a message on a new Binance listing, **estimates** its **initial price** based on historical data from coinAPI
 3. **places** a **LIMIT order** at 0.9 \* estimated_price
