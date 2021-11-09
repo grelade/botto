@@ -1,20 +1,18 @@
 import aiohttp
 import asyncio
-from binance.enums import *
 from datetime import datetime,timezone
 import logging
 import pytz
-from signal import SIGINT, SIGTERM
 import sqlite3
 from telethon.errors import FloodWaitError
 import re
 import yaml
 
+from enums import *
 from funcs import create_binance_client, create_telegram_client
 from funcs import load_cfg, load_auth, load_track
 from funcs import create_logger, error_handler, set_argparser
 from funcs import extract_url
-
 from sockets import crawler_socket_rep
 
 class crawler_proc:
@@ -25,11 +23,10 @@ class crawler_proc:
         self.args = args
         self.cfg = load_cfg(args.cfg_file)
         self.db_args = self.cfg['db']
-   
-        self.scan_interval = 600
-        self.channel_url = 'https://t.me/binance_announcements'
-        self.local_timezone = 'Europe/Warsaw'
-        self.pairing = 'USDT'
+        self.scan_interval = self.cfg['crawler']['scan_interval']
+        self.channel_url = self.cfg['crawler']['channel_url']
+        self.local_timezone = self.cfg['general']['timezone']
+        self.pairing = self.cfg['general']['pair']
         self.logger = create_logger(name='crawler')
         self.mock_msg = True
         
@@ -95,7 +92,7 @@ class crawler_proc:
                 if new_coin:
                     self.logger.info(f"... on a new coin {new_coin['coin_name']}!")
                     response = new_coin.copy()
-                    response['resp'] = 200
+                    response['resp'] = RESPONSE_OK
                     await sock.send_json(response)
                     break
                 else:
@@ -122,7 +119,7 @@ class crawler_proc:
 
             except FloodWaitError as e:
                 self.logger.info(e)
-                await asyncio.sleep(10)
+                await asyncio.sleep(60)
                 pass        
 
     async def close(self):
@@ -132,13 +129,6 @@ class crawler_proc:
         
 async def main(args) -> None:
     try:
-#         logname = 'botto-agent.log'
-#         log_format = "%(asctime)s : %(name)s : %(funcName)s() : %(message)s"
-
-#         if cfg['general']['logging'] == 'to_file':
-#             logging.basicConfig(filename=logname,filemode='a',format=log_format, level=logging.INFO)
-#         elif cfg['general']['logging'] == 'to_screen':
-#         logging.basicConfig(format=log_format, level=logging.INFO)
 
         auth = load_auth(args.auth_file)
 

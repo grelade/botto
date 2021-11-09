@@ -1,18 +1,10 @@
-from enum import Enum
-
-import pandas as pd
-import random
 import logging
 import numpy as np
+import pandas as pd
+import random
 
+from enum import *
 from funcs import moving_average
-
-#agent decision enum
-class dcn(Enum):
-    WAIT = 0
-    SELL = 1
-    BUY = 2
-
     
 class agent_ma:
     
@@ -52,9 +44,9 @@ class agent_ma:
         self.logger.info(f"data_size = {self.data_df.shape[0]}; profit/loss = {100*(ratio-1):.6}")
         
         if ratio > self.frac_sell:
-            return dcn.SELL
+            return AGENT_DECISION_SELL
         else:
-            return dcn.WAIT
+            return AGENT_DECISION_WAIT
         
 class agent_trail:
     
@@ -137,9 +129,9 @@ class agent_trail:
             
         if self.exit:
             self.save_report()
-            return dcn.SELL
+            return AGENT_DECISION_SELL
         else:
-            return dcn.WAIT
+            return AGENT_DECISION_WAIT
         
 agent_dict = {
               'MOVING_AVERAGE': agent_ma,

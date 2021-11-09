@@ -4,19 +4,18 @@ import time
 import zmq
 import zmq.asyncio
 
-stypes = {'SUB': zmq.SUB,'PUB': zmq.PUB,
-          'PUSH': zmq.PUSH,'PULL': zmq.PULL,
-          'REP': zmq.REP,'REQ': zmq.REQ}
+from enums import *
+
 
 class socket_in:
-    def __init__(self,socket_type=stypes['SUB']):
+    def __init__(self,socket_type = zmq.SUB):
         self.ctx = zmq.asyncio.Context()
         self.port = None
         self.socket_type = socket_type
         
     def __enter__(self):
         self.sock = self.ctx.socket(self.socket_type)
-        if self.socket_type == stypes['SUB']:
+        if self.socket_type == zmq.SUB:
             self.sock.setsockopt_string(zmq.SUBSCRIBE, '')
         self.sock.connect('tcp://localhost:'+str(self.port))
         return self.sock
@@ -25,14 +24,14 @@ class socket_in:
         self.sock.close()
 
 class socket_out:
-    def __init__(self,socket_type=stypes['PUB']):
+    def __init__(self,socket_type = zmq.PUB):
         self.ctx = zmq.asyncio.Context()
         self.port = None
         self.socket_type = socket_type
         
     def __enter__(self):
         self.sock = self.ctx.socket(self.socket_type)
-        if self.socket_type == stypes['PUB']:
+        if self.socket_type == zmq.PUB:
             self.sock.setsockopt(zmq.LINGER, 1)
         self.sock.bind('tcp://*:'+str(self.port))
         return self.sock
@@ -45,64 +44,64 @@ class socket_out:
 class harvester_socket_rep(socket_in):
     
     def __init__(self):
-        super().__init__(socket_type=stypes['REP'])
-        self.port = 5580
+        super().__init__(socket_type=zmq.REP)
+        self.port = HARVESTER_PORT
         
 class harvester_socket_req(socket_out):
     
     def __init__(self):
-        super().__init__(socket_type=stypes['REQ'])
-        self.port = 5580
+        super().__init__(socket_type=zmq.REQ)
+        self.port = HARVESTER_PORT
    
 
 class agent_socket_rep(socket_in):
     
     def __init__(self):
-        super().__init__(socket_type=stypes['REP'])
-        self.port = 5590
+        super().__init__(socket_type=zmq.REP)
+        self.port = AGENT_PORT
         
 class agent_socket_req(socket_out):
     
     def __init__(self):
-        super().__init__(socket_type=stypes['REQ'])
-        self.port = 5590
+        super().__init__(socket_type=zmq.REQ)
+        self.port = AGENT_PORT
        
               
 class order_socket_rep(socket_in):
     
     def __init__(self):
-        super().__init__(socket_type=stypes['REP'])
-        self.port = 5560
+        super().__init__(socket_type=zmq.REP)
+        self.port = TRADER_PORT
         
 class order_socket_req(socket_out):
     
     def __init__(self):
-        super().__init__(socket_type=stypes['REQ'])
-        self.port = 5560
+        super().__init__(socket_type=zmq.REQ)
+        self.port = TRADER_PORT
 
 class crawler_socket_rep(socket_in):
     
     def __init__(self):
-        super().__init__(socket_type=stypes['REP'])
-        self.port = 5600
+        super().__init__(socket_type=zmq.REP)
+        self.port = CRAWLER_PORT
         
 class crawler_socket_req(socket_out):
     
     def __init__(self):
-        super().__init__(socket_type=stypes['REQ'])
-        self.port = 5600
+        super().__init__(socket_type=zmq.REQ)
+        self.port = CRAWLER_PORT
         
 class data_socket_recv(socket_in):
     
     def __init__(self):
-        super().__init__(socket_type=stypes['SUB'])
-        self.port = 5550
+        super().__init__(socket_type=zmq.SUB)
+        self.port = DATASTREAM_PORT
 
 class data_socket_send(socket_out):
     
     def __init__(self):
-        super().__init__(socket_type=stypes['PUB'])
-        self.port = 5550        
+        super().__init__(socket_type=zmq.PUB)
+        self.port = DATASTREAM_PORT        
    
 class data_aggregated_socket_recv:
 

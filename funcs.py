@@ -8,10 +8,10 @@ import logging
 import numpy as np
 import pandas as pd
 import re
-from signal import SIGINT, SIGTERM
 from telethon import TelegramClient
 import yaml
 
+from enums import *
 
 async def create_binance_client(binance_api: str,
                                 binance_secret: str) -> BinanceClient:

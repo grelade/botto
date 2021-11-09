@@ -1,7 +1,7 @@
 import asyncio
 import logging
-from signal import SIGINT, SIGTERM
 
+from enums import *
 from funcs import create_binance_client, create_telegram_client
 from funcs import load_cfg, load_auth, load_track
 from funcs import create_logger, error_handler, set_argparser
@@ -18,7 +18,7 @@ async def main(args):
         log_format = "%(asctime)s : %(name)s : %(funcName)s() : %(message)s"
         logging.basicConfig(format=log_format, level=logging.INFO)
 
-        auth = load_auth(file=args.auth_file)    
+        auth = load_auth(file=args.auth_file)
 
         bclient = await create_binance_client(auth['binance_api'],
                                               auth['binance_secret'])
@@ -52,13 +52,13 @@ async def main(args):
         tasks += [asyncio.create_task(trader.run_server())]
         tasks += [asyncio.create_task(trader.update_loop())]
 
+        tasks += [asyncio.create_task(harvester.run_server())]
         tasks += [asyncio.create_task(harvester.stream_loop())]
         tasks += [asyncio.create_task(harvester.emit_data_raw())]
-        tasks += [asyncio.create_task(harvester.run_server())]
 
+        tasks += [asyncio.create_task(agent.run_server())]
         tasks += [asyncio.create_task(agent.agent_loop())]
         tasks += [asyncio.create_task(agent.send_order())]
-        tasks += [asyncio.create_task(agent.run_server())]
 
         await asyncio.gather(*tasks)
 

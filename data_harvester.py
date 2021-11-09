@@ -3,12 +3,11 @@ import aiosqlite
 from binance import BinanceSocketManager
 import logging
 import pandas as pd
-from signal import SIGINT, SIGTERM
 
+from enums import *
 from funcs import create_binance_client
 from funcs import load_cfg, load_auth, load_track
 from funcs import create_logger, error_handler, set_argparser
-
 from sockets import data_socket_send #outputs
 from sockets import harvester_socket_rep #inputs
     
@@ -22,7 +21,7 @@ class harvester_proc:
         self.streams = pd.DataFrame(columns=['harvester_id','name','symbol','active','running'])
         self.tasks = dict()
         self.dataq_raw = asyncio.Queue()
-        self.dbrefresh_time = 5
+        self.db_refresh_time = self.cfg['general']['db_refresh_time']
         self.logger = create_logger(name='data_harvester')
         
     async def stream_loop(self):
@@ -47,7 +46,7 @@ class harvester_proc:
                     pass
 
             await self.update_db_streams()
-            await asyncio.sleep(self.dbrefresh_time)            
+            await asyncio.sleep(self.db_refresh_time)            
   
     async def read_db_streams(self):
 
@@ -140,7 +139,7 @@ class harvester_proc:
             while True:
                 request = await sock.recv_json()
                 response = await self.insert_db_stream(request)
-                response['resp'] = 200
+                response['resp'] = RESPONSE_OK
                 await sock.send_json(response)
                 
     async def close(self):

@@ -1,20 +1,16 @@
 import aiosqlite
 import asyncio
-from binance.enums import *
 import pandas as pd
-from signal import SIGINT, SIGTERM
 import yaml
 
+from agent_types import agent_ma, agent_trail, agent_dict
+from enums import *
 from funcs import create_binance_client
 from funcs import load_cfg, load_auth
-from funcs import aio_pd_read_sql, id_to_symbol
 from funcs import create_logger, set_argparser, error_handler
-
+from funcs import aio_pd_read_sql, id_to_symbol
 from sockets import order_socket_req #outputs
 from sockets import data_aggregated_socket_recv, agent_socket_rep #inputs
-
-
-from agent_types import agent_ma, agent_trail, agent_dict, dcn
 
 class agent_proc:
     
@@ -28,7 +24,7 @@ class agent_proc:
         self.orders = pd.DataFrame()
         self.tasks = dict()
         self.agents_obj = dict()
-        self.dbrefresh_time = 5 #in seconds
+        self.dbrefresh_time = self.cfg['general']['db_refresh_time'] #in seconds
         self.logger = create_logger(name='agent')  
   
     async def read_db_agents(self):
@@ -62,8 +58,8 @@ class agent_proc:
     def read_init_data(self,
                        init_order_id:int):
         #self.orders[self.orders['agent_id']==agent_id]['']
-        mask1 = self.orders['id']==init_order_id
-        mask2 = self.orders['status']=='FILLED'
+        mask1 = self.orders['id'] == init_order_id
+        mask2 = self.orders['status'] == ORDER_STATUS_FILLED
         data = self.orders[(mask1) & (mask2)][['transactTime','price','origQty']]
         #print(data['transactTime'].idxmax())
         data0 = data.loc[data['transactTime'].idxmax()]
@@ -94,7 +90,7 @@ class agent_proc:
             while True:
                 data = await sock.recv_json()
                 
-                if data['harvester_id']==harvester_id:
+                if data['harvester_id'] == harvester_id:
                     #self.logger.info(data)
                     
                     agent.load_data(data)
@@ -126,7 +122,7 @@ class agent_proc:
             while True:
                 request = await sock.recv_json()
                 response = await self.insert_db_agent(request)
-                response['resp'] = 200
+                response['resp'] = RESPONSE_OK
                 await sock.send_json(response)
 
     async def agent_loop(self):

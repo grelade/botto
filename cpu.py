@@ -1,16 +1,13 @@
 import asyncio
-from binance.enums import *
 from datetime import datetime, timedelta
 import logging
 import pytz
-from signal import SIGINT, SIGTERM
 
+from enums import *
 from funcs import create_binance_client
 from funcs import load_cfg, load_auth, load_track
 from funcs import create_logger, error_handler, set_argparser
-
 from funcs import estimate_price
-
 from sockets import order_socket_req, agent_socket_req, harvester_socket_req, crawler_socket_req #outputs
 
 class cpu_proc:
@@ -18,6 +15,8 @@ class cpu_proc:
     def __init__(self,client,args,**kwargs):
         self.client = client
         self.args = args
+        self.cfg = load_cfg(args.cfg_file)
+        self.pair = self.cfg['general']['pair']
         self.track_cfg = load_track(self.args.track_file)
         self.logger = create_logger(name='cpu')
 
@@ -64,11 +63,11 @@ class cpu_proc:
         #new order
         if is_s and is_tot and is_op:
             rec['mode'] = 'new'
-            if self.track_cfg['trader_order_type']=='MARKET':
+            if self.track_cfg['trader_order_type'] == ORDER_TYPE_MARKET:
                 rec['order_price'] = self.track_cfg['order_price']
                 rec['type'] = ORDER_TYPE_MARKET
 
-            elif self.track_cfg['trader_order_type']=='LIMIT' and is_p:
+            elif self.track_cfg['trader_order_type'] == ORDER_TYPE_LIMIT and is_p:
                 rec['order_price'] = self.track_cfg['order_price']
                 rec['type'] = ORDER_TYPE_LIMIT
                 rec['price'] = self.track_cfg['price']
@@ -89,7 +88,7 @@ class cpu_proc:
                  'active':True,
                  'running':False}
         resp_h = await self.add_harvester(req_h)
-        if resp_h['resp'] != 200: raise Exception('harvester problem')
+        if resp_h['resp'] != RESPONSE_OK: raise Exception('harvester problem')
         req_a = {'name':self.track_cfg['agent_name'],
                  'init_order_id':resp_o['id'],
                  'harvester_id':resp_h['harvester_id'],
@@ -98,7 +97,7 @@ class cpu_proc:
                  'active':True,
                  'running':False}    
         resp_a = await self.add_agent(req_a)
-        if resp_a['resp'] != 200: raise Exception('agent problem')
+        if resp_a['resp'] != RESPONSE_OK: raise Exception('agent problem')
         self.logger.info('end coin track...')
 
     async def newcoin_track(self):
@@ -106,7 +105,7 @@ class cpu_proc:
         
         req_c = {'mock':self.track_cfg['crawler_mock_msg']}
         resp_c = await self.add_crawler(req_c)
-        if resp_c['resp'] != 200: raise Exception('crawler problem')
+        if resp_c['resp'] != RESPONSE_OK: raise Exception('crawler problem')
         newcoin = resp_c.copy()
         newcoin = await self.order_preparation(newcoin)
 
@@ -116,12 +115,11 @@ class cpu_proc:
                'mode': 'new',
                'mock': self.track_cfg['trader_mock_orders']}
         
-        if self.track_cfg['trader_order_type']=='MARKET':
+        if self.track_cfg['trader_order_type'] == ORDER_TYPE_MARKET:
             rec['type']= ORDER_TYPE_MARKET
             
-        elif self.track_cfg['trader_order_type']=='LIMIT':
+        elif self.track_cfg['trader_order_type'] == ORDER_TYPE_LIMIT:
             #last_price = await self.get_last_price(newcoin['symbol'])
-            
             rec['type'] = ORDER_TYPE_LIMIT
             rec['price'] = self.track_cfg['trader_price_frac']*newcoin['est_init_price']
 
@@ -132,7 +130,7 @@ class cpu_proc:
                  'active':True,
                  'running':False}
         resp_h = await self.add_harvester(req_h)
-        if resp_h['resp'] != 200: raise Exception('harvester problem')
+        if resp_h['resp'] != RESPONSE_OK: raise Exception('harvester problem')
             
         req_a = {'name':self.track_cfg['agent_name'],
                  'init_order_id':resp_o['id'],
@@ -142,7 +140,7 @@ class cpu_proc:
                  'active':True,
                  'running':False}    
         resp_a = await self.add_agent(req_a)
-        if resp_a['resp'] != 200: raise Exception('agent problem')
+        if resp_a['resp'] != RESPONSE_OK: raise Exception('agent problem')
             
         self.logger.info('end newcoin track...')
     
@@ -159,7 +157,7 @@ class cpu_proc:
         
     async def order_preparation(self,newcoin):
         nc = newcoin.copy()
-        tz = pytz.timezone('Europe/Warsaw')
+        tz = pytz.timezone(self.cfg['general']['timezone'])
         
         t_msg = tz.localize(datetime.fromtimestamp(newcoin['msg_time']))
         t_start = tz.localize(datetime.fromtimestamp(newcoin['start_time']))
@@ -177,7 +175,7 @@ class cpu_proc:
                                      base_asset=newcoin['coin_name'],
                                      time_start=t_msg,
                                      time_end=t_price_estimate,
-                                     quote_asset='USDT',
+                                     quote_asset=self.pair,
                                      period='5MIN')
         
         nc['est_init_price'] = prices['price_average']

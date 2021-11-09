@@ -2,8 +2,14 @@
 general:
     timezone: "Europe/Warsaw"
     pair: "USDT"
+    db_refresh_time: 5 #seconds
+crawler:
+    channel_url: "https://t.me/binance_announcements"
+    scan_interval: 600 #seconds
+    
 db:
     database: "cfg/main.db"
     isolation_level: null
     check_same_thread: False
+    
     
