@@ -1,18 +1,17 @@
-from binance import AsyncClient as BinanceClient
-from telethon import TelegramClient
-
-import asyncio
 import aiohttp
-import logging
-import yaml
 import aiosqlite
+import argparse
+import asyncio
+from binance import AsyncClient as BinanceClient
 import json
+import logging
+import numpy as np
 import pandas as pd
 import re
-import numpy as np
-import argparse
-
 from signal import SIGINT, SIGTERM
+from telethon import TelegramClient
+import yaml
+
 
 async def create_binance_client(binance_api: str,
                                 binance_secret: str) -> BinanceClient:

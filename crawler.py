@@ -1,30 +1,19 @@
-import asyncio
-import sqlite3
-import aiosqlite
 import aiohttp
-import yaml
-import logging
-import pandas as pd
-import re
-import sys
-
-from datetime import datetime,timezone
-import pytz
-
-from telethon.errors import FloodWaitError
-
-import zmq, zmq.asyncio
-
+import asyncio
 from binance.enums import *
+from datetime import datetime,timezone
+import logging
+import pytz
+from signal import SIGINT, SIGTERM
+import sqlite3
+from telethon.errors import FloodWaitError
+import re
+import yaml
 
 from funcs import create_binance_client, create_telegram_client
-from funcs import extract_url
-from funcs import create_logger
 from funcs import load_cfg, load_auth, load_track
-
-from signal import SIGINT, SIGTERM
-from funcs import error_handler
-from funcs import set_argparser
+from funcs import create_logger, error_handler, set_argparser
+from funcs import extract_url
 
 from sockets import crawler_socket_rep
 

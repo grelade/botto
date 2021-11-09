@@ -1,32 +1,18 @@
-import asyncio
-import sqlite3
 import aiosqlite
-import yaml
-import logging
-import pandas as pd
-import random
-from datetime import datetime
-
-
-
-import zmq, zmq.asyncio
-
-from binance import AsyncClient as BinanceClient
-from binance import BinanceSocketManager
+import asyncio
 from binance.enums import *
+from datetime import datetime
+import logging
+import random
+from signal import SIGINT, SIGTERM
+import yaml
 
 from funcs import create_binance_client
 from funcs import load_auth, load_cfg
-
+from funcs import create_logger, error_handler, set_argparser
 from funcs import aio_pd_read_sql, id_to_symbol, price_average
-from funcs import create_logger
-
-from signal import SIGINT, SIGTERM
-from funcs import error_handler
-from funcs import set_argparser
 
 from sockets import order_socket_rep #inputs
-
 
 class trader_proc:
     
@@ -35,7 +21,6 @@ class trader_proc:
         self.args = args
         self.cfg = load_cfg(args.cfg_file)
         self.db_args = self.cfg['db']
-        self.ctx = zmq.asyncio.Context()    
         self.update_refresh_time = 5
         self.mock_orders = False
         self.logger = create_logger(name='trader')

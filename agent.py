@@ -1,26 +1,17 @@
 import aiosqlite
 import asyncio
-import sqlite3
-
-import yaml
-import logging
-import pandas as pd
-
-import zmq, zmq.asyncio
-
 from binance.enums import *
+import pandas as pd
+from signal import SIGINT, SIGTERM
+import yaml
 
 from funcs import create_binance_client
 from funcs import load_cfg, load_auth
 from funcs import aio_pd_read_sql, id_to_symbol
-from funcs import create_logger
-from funcs import set_argparser
-
-from signal import SIGINT, SIGTERM
-from funcs import error_handler
+from funcs import create_logger, set_argparser, error_handler
 
 from sockets import order_socket_req #outputs
-from sockets import data_aggregated_socket_recv,agent_socket_rep #inputs
+from sockets import data_aggregated_socket_recv, agent_socket_rep #inputs
 
 
 from agent_types import agent_ma, agent_trail, agent_dict, dcn
@@ -32,7 +23,6 @@ class agent_proc:
         self.args = args
         self.cfg = load_cfg(args.cfg_file)
         self.db_args = self.cfg['db']
-        self.ctx = zmq.asyncio.Context()
         self.orderq = asyncio.Queue()        
         self.agents = pd.DataFrame()
         self.orders = pd.DataFrame()

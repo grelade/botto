@@ -1,26 +1,17 @@
-import logging
-import sys
-
 import asyncio
-import zmq, zmq.asyncio
-import yaml
-
-import pytz
+from binance.enums import *
 from datetime import datetime, timedelta
+import logging
+import pytz
+from signal import SIGINT, SIGTERM
 
 from funcs import create_binance_client
-from funcs import create_logger
 from funcs import load_cfg, load_auth, load_track
+from funcs import create_logger, error_handler, set_argparser
 
-from signal import SIGINT, SIGTERM
-from funcs import error_handler
 from funcs import estimate_price
-from funcs import set_argparser
 
 from sockets import order_socket_req, agent_socket_req, harvester_socket_req, crawler_socket_req #outputs
-# from sockets import newcoin_socket_recv #inputs
-
-from binance.enums import *
 
 class cpu_proc:
     

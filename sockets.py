@@ -1,9 +1,8 @@
+import asyncio
+import pandas as pd
+import time
 import zmq
 import zmq.asyncio
-import asyncio
-import time
-
-import pandas as pd
 
 stypes = {'SUB': zmq.SUB,'PUB': zmq.PUB,
           'PUSH': zmq.PUSH,'PULL': zmq.PULL,

@@ -1,19 +1,13 @@
 import asyncio
 import aiosqlite
+from binance import BinanceSocketManager
 import logging
 import pandas as pd
-
-import zmq, zmq.asyncio
-
-from binance import BinanceSocketManager
+from signal import SIGINT, SIGTERM
 
 from funcs import create_binance_client
-from funcs import create_logger
 from funcs import load_cfg, load_auth, load_track
-
-from signal import SIGINT, SIGTERM
-from funcs import error_handler
-from funcs import set_argparser
+from funcs import create_logger, error_handler, set_argparser
 
 from sockets import data_socket_send #outputs
 from sockets import harvester_socket_rep #inputs
@@ -27,8 +21,6 @@ class harvester_proc:
         self.db_args = self.cfg['db']
         self.streams = pd.DataFrame(columns=['harvester_id','name','symbol','active','running'])
         self.tasks = dict()
-        
-        self.ctx = zmq.asyncio.Context()
         self.dataq_raw = asyncio.Queue()
         self.dbrefresh_time = 5
         self.logger = create_logger(name='data_harvester')

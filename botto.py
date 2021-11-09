@@ -4,7 +4,7 @@ from signal import SIGINT, SIGTERM
 
 from funcs import create_binance_client, create_telegram_client
 from funcs import load_cfg, load_auth, load_track
-from funcs import error_handler, set_argparser, create_logger
+from funcs import create_logger, error_handler, set_argparser
 
 from cpu import cpu_proc
 from agent import agent_proc
