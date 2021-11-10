@@ -3,6 +3,7 @@ import aiosqlite
 import argparse
 import asyncio
 from binance import AsyncClient as BinanceClient
+from datetime import datetime
 import json
 import logging
 import numpy as np
@@ -123,16 +124,24 @@ def create_logger(name,fmt="%(asctime)s : %(name)s : %(funcName)s() : %(message)
     
     return logger
 
-async def estimate_price(coinapi_apikey,base_asset,time_start,time_end,quote_asset='USDT',period='5MIN'):
-    
-    if isinstance(time_start,int):
-        time_start = datetime.fromtimestamp(time_start)
+async def estimate_price(coinapi_apikey: str,
+                         base_asset: str,
+                         time_start: datetime,
+                         time_end: datetime,
+                         quote_asset: str = 'USDT',
+                         period: str = '5MIN'):
 
-    if isinstance(time_end,int):
-        time_end = datetime.fromtimestamp(time_end)
+    assert time_start.tzinfo, 'no timezone in time_start'
+    assert time_end.tzinfo, 'no timezone in time_end'
     
-    parameters = {'time_start': time_start.isoformat(),
-              'time_end': time_end.isoformat(),
+    time_start = time_start.replace(microsecond=0)
+    time_end = time_end.replace(microsecond=0)
+    
+    time_start = time_start.isoformat()
+    time_end = time_end.isoformat()
+    
+    parameters = {'time_start': time_start,
+              'time_end': time_end,
               'period_id':period}
 
     headers = {
@@ -150,17 +159,21 @@ async def estimate_price(coinapi_apikey,base_asset,time_start,time_end,quote_ass
             out = await response.text()
             data = json.loads(out)
             
-    r_av = 0
-    rlow_av = 0
     rhigh_av = 0
+    rlow_av = 0
+    r_av = 0
+    if not isinstance(data,list):
+        print(f'coinapi output is not a list: {data}')
+    else:
+        for d in data:
+            rhigh_av+=d['rate_high']
+            rlow_av+=d['rate_low']
 
-    for d in data:
-        rhigh_av+=d['rate_high']
-        rlow_av+=d['rate_low']
-    
-    rhigh_av = rhigh_av/len(data)
-    rlow_av = rlow_av/len(data)
-    r_av = (rhigh_av+rlow_av)/2
+        if len(data)>0:
+            rhigh_av = rhigh_av/len(data)
+            rlow_av = rlow_av/len(data)
+            r_av = (rhigh_av+rlow_av)/2
+
     return {'price_average':r_av,'price_high_average':rhigh_av,'price_low_average':rlow_av}
 
 
