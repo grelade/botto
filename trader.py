@@ -287,9 +287,7 @@ class trader_proc:
                 while True:
                     order = await sock.recv_json()
                     self.mock_orders = order['mock']
-                    mockstr = 'REAL'
-                    if self.mock_orders:
-                        mockstr = 'MOCK'
+                    mockstr = 'MOCK' if self.mock_orders else 'REAL'
                     self.logger.info(f'{mockstr} order execution commences')
 
                     if order['side'] == SIDE_SELL:

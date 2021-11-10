@@ -19,7 +19,6 @@ class agent_proc:
         self.args = args
         self.cfg = load_cfg(args.cfg_file)
         self.db_args = self.cfg['db']
-        self.orderq = asyncio.Queue()        
         self.agents = pd.DataFrame()
         self.orders = pd.DataFrame()
         self.tasks = dict()
@@ -95,7 +94,7 @@ class agent_proc:
                     
                     agent.load_data(data)
                     decision = agent.decide()
-                    
+
                     if decision == AGENT_DECISION_SELL:
 
                         rec = {'symbol': await id_to_symbol(self.db_args,harvester_id),
@@ -105,17 +104,22 @@ class agent_proc:
                                'mock': False,
                                'mode': 'new'}
                         
-                        await self.orderq.put(rec)
+                        #await self.orderq.put(rec)
+                        response = await self.send_order(rec)
+#                         print(response)
+#                         if response[''] != RESPONSE_OK:
+#                             raise Error('')
+                            
                         self.agents.loc[self.agents['id']==id,'active'] = 0
                         await self.update_db_agents()
                         break
                         
-    async def send_order(self):
+    async def send_order(self,request):
         with order_socket_req() as sock:
-            while True:
-                request = await self.orderq.get()
-                await sock.send_json(request)
-                response = await sock.recv_json()
+#             request = await self.orderq.get()
+            await sock.send_json(request)
+            response = await sock.recv_json()
+            return response
 
     async def run_server(self):
         with agent_socket_rep() as sock:
@@ -171,7 +175,6 @@ async def main(args) -> None:
 
         tasks = []
         tasks += [asyncio.create_task(proc.agent_loop())]
-        tasks += [asyncio.create_task(proc.send_order())]
         tasks += [asyncio.create_task(proc.run_server())]
         await asyncio.gather(*tasks)
         

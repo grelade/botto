@@ -58,7 +58,7 @@ async def main(args):
         tasks += [asyncio.create_task(harvester.emit_data_raw())]
 
         tasks += [asyncio.create_task(agent.agent_loop())]
-        tasks += [asyncio.create_task(agent.send_order())]
+#         tasks += [asyncio.create_task(agent.send_order())]
         tasks += [asyncio.create_task(agent.run_server())]
 
         await asyncio.gather(*tasks)

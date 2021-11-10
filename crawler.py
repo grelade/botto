@@ -62,10 +62,10 @@ class crawler_proc:
             
             return {'coin_name': coin_name,
                     'symbol': coin_name+self.pairing,
-                    'start_time': int(time_dt_tz_local.timestamp()),
-                    'msg_time': int(msg_time_local.timestamp()),
-#                     'start_time_dt': time_dt_tz_local,
-#                     'msg_time_dt': msg_time_local
+                    'start_time': time_dt_tz_local.isoformat(),
+                    'msg_time': msg_time_local.isoformat(),
+                    #'start_time': int(time_dt_tz_local.timestamp()),
+                    #'msg_time': int(msg_time_local.timestamp()),
                    }   
         
     async def crawl_loop(self,sock):
@@ -91,9 +91,9 @@ class crawler_proc:
                 new_coin = await self.is_msg_about_new_coin(newest_msg)
                 if new_coin:
                     self.logger.info(f"... on a new coin {new_coin['coin_name']}!")
-                    response = new_coin.copy()
-                    response['resp'] = RESPONSE_OK
-                    await sock.send_json(response)
+
+                    new_coin['resp'] = RESPONSE_OK
+                    await sock.send_json(new_coin)
                     break
                 else:
                     self.logger.info('... but NOT about a new coin.')

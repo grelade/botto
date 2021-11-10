@@ -19,7 +19,7 @@ class cpu_proc:
         self.pair = self.cfg['general']['pair']
         self.track_cfg = load_track(self.args.track_file)
         self.logger = create_logger(name='cpu')
-        self.orderq = asyncio.Queue()
+#         self.orderq = asyncio.Queue()
         
     async def send_order(self,request):
         with order_socket_req() as sock:
@@ -90,7 +90,6 @@ class cpu_proc:
             raise Exception('unknown order / check conf file')
             
         resp_o = await self.send_order(rec)
-#         await self.orderq.put(rec)
         
         req_h = {'name':self.track_cfg['harvester_name'],
                  'symbol':self.track_cfg['symbol'],
@@ -114,8 +113,10 @@ class cpu_proc:
     async def newcoin_track(self):
         self.logger.info('init newcoin track...')
         
+        #crawl
         req_c = {'mock':self.track_cfg['crawler_mock_msg']}
         resp_c = await self.add_crawler(req_c)
+
         if resp_c['resp'] != RESPONSE_OK: raise Exception('crawler problem')
         newcoin = resp_c.copy()
         newcoin = await self.order_preparation(newcoin)
@@ -135,7 +136,6 @@ class cpu_proc:
             rec['price'] = self.track_cfg['trader_price_frac']*newcoin['est_init_price']
 
         resp_o = await self.send_order(rec)
-#         await self.orderq.put(rec)
     
         req_h = {'name':self.track_cfg['harvester_name'],
                  'symbol':newcoin['symbol'],
@@ -170,9 +170,12 @@ class cpu_proc:
     async def order_preparation(self,newcoin):
         nc = newcoin.copy()
         tz = pytz.timezone(self.cfg['general']['timezone'])
-        
-        t_msg = tz.localize(datetime.fromtimestamp(newcoin['msg_time']))
-        t_start = tz.localize(datetime.fromtimestamp(newcoin['start_time']))
+
+        t_msg = datetime.fromisoformat(newcoin['msg_time'])
+        t_start = datetime.fromisoformat(newcoin['start_time'])
+
+        #t_msg = tz.localize(datetime.fromtimestamp(newcoin['msg_time']))
+        #t_start = tz.localize(datetime.fromtimestamp(newcoin['start_time']))
         t_price_estimate = t_start - timedelta(minutes=5)
         t_end_preparation = t_start - timedelta(minutes=1)
         
