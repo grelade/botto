@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 import random
 
-from enum import *
+from enums import *
 from funcs import moving_average
     
 class agent_ma:

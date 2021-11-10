@@ -96,7 +96,7 @@ class agent_proc:
                     agent.load_data(data)
                     decision = agent.decide()
                     
-                    if decision == dcn.SELL:
+                    if decision == AGENT_DECISION_SELL:
 
                         rec = {'symbol': await id_to_symbol(self.db_args,harvester_id),
                                'type': ORDER_TYPE_MARKET,

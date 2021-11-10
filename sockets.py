@@ -7,8 +7,8 @@ import zmq.asyncio
 from enums import *
 
 
-class socket_in:
-    def __init__(self,socket_type = zmq.SUB):
+class socket_client:
+    def __init__(self,socket_type = zmq.REQ):
         self.ctx = zmq.asyncio.Context()
         self.port = None
         self.socket_type = socket_type
@@ -23,8 +23,8 @@ class socket_in:
     def __exit__(self, *exc):
         self.sock.close()
 
-class socket_out:
-    def __init__(self,socket_type = zmq.PUB):
+class socket_server:
+    def __init__(self,socket_type = zmq.REP):
         self.ctx = zmq.asyncio.Context()
         self.port = None
         self.socket_type = socket_type
@@ -41,67 +41,68 @@ class socket_out:
         
 
 
-class harvester_socket_rep(socket_in):
+class harvester_socket_rep(socket_server):
     
     def __init__(self):
         super().__init__(socket_type=zmq.REP)
         self.port = HARVESTER_PORT
         
-class harvester_socket_req(socket_out):
+class harvester_socket_req(socket_client):
     
     def __init__(self):
         super().__init__(socket_type=zmq.REQ)
         self.port = HARVESTER_PORT
    
 
-class agent_socket_rep(socket_in):
+class agent_socket_rep(socket_server):
     
     def __init__(self):
         super().__init__(socket_type=zmq.REP)
         self.port = AGENT_PORT
         
-class agent_socket_req(socket_out):
+class agent_socket_req(socket_client):
     
     def __init__(self):
         super().__init__(socket_type=zmq.REQ)
         self.port = AGENT_PORT
        
               
-class order_socket_rep(socket_in):
+class order_socket_rep(socket_server):
     
     def __init__(self):
         super().__init__(socket_type=zmq.REP)
         self.port = TRADER_PORT
         
-class order_socket_req(socket_out):
+class order_socket_req(socket_client):
     
     def __init__(self):
         super().__init__(socket_type=zmq.REQ)
         self.port = TRADER_PORT
 
-class crawler_socket_rep(socket_in):
+class crawler_socket_rep(socket_server):
     
     def __init__(self):
         super().__init__(socket_type=zmq.REP)
         self.port = CRAWLER_PORT
         
-class crawler_socket_req(socket_out):
+class crawler_socket_req(socket_client):
     
     def __init__(self):
         super().__init__(socket_type=zmq.REQ)
         self.port = CRAWLER_PORT
         
-class data_socket_recv(socket_in):
-    
-    def __init__(self):
-        super().__init__(socket_type=zmq.SUB)
-        self.port = DATASTREAM_PORT
-
-class data_socket_send(socket_out):
+        
+class data_socket_send(socket_server):
     
     def __init__(self):
         super().__init__(socket_type=zmq.PUB)
-        self.port = DATASTREAM_PORT        
+        self.port = DATASTREAM_PORT
+        
+class data_socket_recv(socket_client):
+    
+    def __init__(self):
+        super().__init__(socket_type=zmq.SUB)
+        self.port = DATASTREAM_PORT     
    
 class data_aggregated_socket_recv:
 

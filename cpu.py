@@ -19,13 +19,21 @@ class cpu_proc:
         self.pair = self.cfg['general']['pair']
         self.track_cfg = load_track(self.args.track_file)
         self.logger = create_logger(name='cpu')
-
+        self.orderq = asyncio.Queue()
+        
     async def send_order(self,request):
         with order_socket_req() as sock:
             await sock.send_json(request)
             response = await sock.recv_json()
             return response
-            
+
+#     async def send_order(self):
+#         with order_socket_req() as sock:
+#             while True:
+#                 request = await self.orderq.get()
+#                 await sock.send_json(request)
+#                 response = await sock.recv_json() 
+        
     async def add_harvester(self,request):
         with harvester_socket_req() as sock:
             await sock.send_json(request)
@@ -82,13 +90,15 @@ class cpu_proc:
             raise Exception('unknown order / check conf file')
             
         resp_o = await self.send_order(rec)
-
+#         await self.orderq.put(rec)
+        
         req_h = {'name':self.track_cfg['harvester_name'],
                  'symbol':self.track_cfg['symbol'],
                  'active':True,
                  'running':False}
         resp_h = await self.add_harvester(req_h)
         if resp_h['resp'] != RESPONSE_OK: raise Exception('harvester problem')
+            
         req_a = {'name':self.track_cfg['agent_name'],
                  'init_order_id':resp_o['id'],
                  'harvester_id':resp_h['harvester_id'],
@@ -98,6 +108,7 @@ class cpu_proc:
                  'running':False}    
         resp_a = await self.add_agent(req_a)
         if resp_a['resp'] != RESPONSE_OK: raise Exception('agent problem')
+            
         self.logger.info('end coin track...')
 
     async def newcoin_track(self):
@@ -124,7 +135,8 @@ class cpu_proc:
             rec['price'] = self.track_cfg['trader_price_frac']*newcoin['est_init_price']
 
         resp_o = await self.send_order(rec)
-
+#         await self.orderq.put(rec)
+    
         req_h = {'name':self.track_cfg['harvester_name'],
                  'symbol':newcoin['symbol'],
                  'active':True,
@@ -170,7 +182,7 @@ class cpu_proc:
         while (t_now:= tz.localize(datetime.now())) < t_price_estimate:
             await asyncio.sleep(.001)
             
-        auth = load_auth()
+        auth = load_auth(self.args.auth_file)
         prices = await estimate_price(auth['coinapi_apikey'],
                                      base_asset=newcoin['coin_name'],
                                      time_start=t_msg,
@@ -182,9 +194,8 @@ class cpu_proc:
         
         while (t_now := tz.localize(datetime.now())) < t_end_preparation:
             await asyncio.sleep(.001)
-            
+        self.logger.info(f'... {nc["symbol"]} price = {nc["est_init_price"]}')
         return nc
-        
 
     async def get_last_price(self,symbol):
         last_price = await self.client.get_symbol_ticker(symbol=symbol)
