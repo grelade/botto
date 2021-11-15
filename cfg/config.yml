@@ -5,6 +5,7 @@ general:
     db_refresh_time: 5 #seconds
 crawler:
     channel_url: "https://t.me/binance_announcements"
+    init_telegram_msg: 0 #from which msg to start
     scan_interval: 600 #seconds
     
 db:
