@@ -105,23 +105,26 @@ class crawler_proc:
     async def run_server(self):
         self.logger.info('Starting crawler_proc()')
         with crawler_socket_rep() as sock:
-            try:
+
                 while True:
-                    self.new_msg_id = 0
-                    crawl_request = await sock.recv_json()
+                    try:
+                        self.new_msg_id = 0
+                        crawl_request = await sock.recv_json()
 
-                    self.mock_msg = crawl_request['mock']
-                    mockstr = 'REAL'
-                    if self.mock_msg:
-                        mockstr = 'MOCK'
-                    self.logger.info(f'{mockstr} crawling commences')
-                    await self.crawl_loop(sock)
+                        self.mock_msg = crawl_request['mock']
+                        mockstr = 'REAL'
+                        if self.mock_msg:
+                            mockstr = 'MOCK'
+                        self.logger.info(f'{mockstr} crawling commences')
+                        await self.crawl_loop(sock)
+
+                    except FloodWaitError as e:
+                        self.logger.info(f'FloodWaitError: {str(e)}')
+                        # self.logger.info(e)
+                        await asyncio.sleep(60)
+                        pass
 
 
-            except FloodWaitError as e:
-                self.logger.info(e)
-                await asyncio.sleep(60)
-                pass
 
     async def close(self):
         print('crawler close')
