@@ -110,12 +110,7 @@ class cpu_proc:
 
         self.logger.info('end coin track...')
 
-    async def newcoin_track(self):
-        self.logger.info('init newcoin track...')
-
-        #crawl
-        req_c = {'mock':self.track_cfg['crawler_mock_msg']}
-        resp_c = await self.add_crawler(req_c)
+    async def newcoin_track_sub(self,resp_c):
 
         if resp_c['resp'] != RESPONSE_OK: raise Exception('crawler problem')
         newcoin = resp_c.copy()
@@ -134,7 +129,7 @@ class cpu_proc:
             #last_price = await self.get_last_price(newcoin['symbol'])
             rec['type'] = ORDER_TYPE_LIMIT
             rec['price'] = self.track_cfg['trader_price_frac']*newcoin['est_init_price']
-        
+
         success = False
         while not success:
             try:
@@ -162,6 +157,18 @@ class cpu_proc:
                  'running':False}
         resp_a = await self.add_agent(req_a)
         if resp_a['resp'] != RESPONSE_OK: raise Exception('agent problem')
+
+    async def newcoin_track(self):
+        self.logger.info('init newcoin track...')
+
+        #crawl
+        req_c = {'mock':self.track_cfg['crawler_mock_msg']}
+        resps_c = await self.add_crawler(req_c)
+
+        tasks = [asyncio.create_task(self.newcoin_track_sub(resp_c)) for resp_c in resps_c]
+
+        await asyncio.gather(*tasks)
+
 
         self.logger.info('end newcoin track...')
 

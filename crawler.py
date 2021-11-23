@@ -22,6 +22,7 @@ class crawler_proc:
         self.tclient = telegram_client
         self.args = args
         self.cfg = load_cfg(args.cfg_file)
+        self.auth = load_auth(args.auth_file)
         self.db_args = self.cfg['db']
         self.scan_interval = self.cfg['crawler']['scan_interval']
         self.channel_url = self.cfg['crawler']['channel_url']
@@ -35,39 +36,44 @@ class crawler_proc:
     async def is_msg_about_new_coin(self, msg_dict: dict) -> dict:
         msg = msg_dict['message']
         if 'Binance Will List' in msg:
+            new_coins = []
 
-            extract = re.search('\(.+\)',msg)
-            coin_name = extract[0][1:-1] if extract else ''
-    #         extract = re.search('(www|http:|https:)+[^\s]+[\w]',msg)
-    #         news_url = extract[0] if extract else ''
-            news_url = extract_url(msg)
+            extracts = re.findall('\(.+?\)',msg)
 
-            async with aiohttp.ClientSession() as session:
-                async with session.request('GET',news_url) as resp:
-                    msg_web = await resp.text()
+            for ex in extracts:
+                coin_name = ex[1:-1]
+        #         extract = re.search('(www|http:|https:)+[^\s]+[\w]',msg)
+        #         news_url = extract[0] if extract else ''
+                news_url = extract_url(msg)
 
-            extract = re.search('[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2} \(.*?\)',msg_web)
-            date_format = "%Y-%m-%d %H:%M (%Z)"
-            time_str = extract[0] if extract else '1000-1-1 00:00 (UTC)'
-            time_dt = datetime.strptime(time_str,date_format)
+                async with aiohttp.ClientSession() as session:
+                    async with session.request('GET',news_url) as resp:
+                        msg_web = await resp.text()
 
-            extract = re.search('\(.*?\)',time_str)
-            tz = pytz.timezone(extract[0][1:-1] if extract else 'UTC') #extract timezone
-            tz_local = pytz.timezone(self.local_timezone) #use local timezone
+                extract = re.search('[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2} \(.*?\)',msg_web)
+                date_format = "%Y-%m-%d %H:%M (%Z)"
+                time_str = extract[0] if extract else '1000-1-1 00:00 (UTC)'
+                time_dt = datetime.strptime(time_str,date_format)
 
-            time_dt_tz = tz.localize(time_dt)
+                extract = re.search('\(.*?\)',time_str)
+                tz = pytz.timezone(extract[0][1:-1] if extract else 'UTC') #extract timezone
+                tz_local = pytz.timezone(self.local_timezone) #use local timezone
 
-            time_dt_tz_local = time_dt_tz.astimezone(tz_local)
+                time_dt_tz = tz.localize(time_dt)
 
-            msg_time_local = msg_dict['date'].astimezone(tz_local)
+                time_dt_tz_local = time_dt_tz.astimezone(tz_local)
 
-            return {'coin_name': coin_name,
-                    'symbol': coin_name+self.pairing,
-                    'start_time': time_dt_tz_local.isoformat(),
-                    'msg_time': msg_time_local.isoformat(),
-                    #'start_time': int(time_dt_tz_local.timestamp()),
-                    #'msg_time': int(msg_time_local.timestamp()),
-                   }
+                msg_time_local = msg_dict['date'].astimezone(tz_local)
+
+                new_coins+=[{'coin_name': coin_name,
+                            'symbol': coin_name+self.pairing,
+                            'start_time': time_dt_tz_local.isoformat(),
+                            'msg_time': msg_time_local.isoformat(),
+                            #'start_time': int(time_dt_tz_local.timestamp()),
+                            #'msg_time': int(msg_time_local.timestamp()),
+                            }]
+
+            return new_coins
 
     async def crawl_loop(self,sock):
 
@@ -75,7 +81,9 @@ class crawler_proc:
 
             if not self.mock_msg:
                 msg_channel = await self.tclient.get_entity(self.channel_url)
-                newest_msg = (await self.tclient.get_messages(msg_channel,limit=self.init_msg+1))[-self.init_msg].to_dict()
+                newest_msg = (await self.tclient.get_messages(msg_channel,limit=self.init_msg+1))[self.init_msg].to_dict()
+
+
 #                 newest_msg = (await self.tclient.get_messages(msg_channel,limit=50))[29].to_dict()
 #                 for i,m in enumerate(await self.tclient.get_messages(msg_channel,limit=50)):
 #                     print(i,m.to_dict()['message'])
@@ -89,13 +97,16 @@ class crawler_proc:
             if newest_msg['id'] != self.new_msg_id:
                 self.new_msg_id = newest_msg['id']
                 self.logger.info(f"new msg... {extract_url(newest_msg['message'])}")
-                new_coin = await self.is_msg_about_new_coin(newest_msg)
-                if new_coin:
-                    self.logger.info(f"... on a new coin {new_coin['coin_name']}!")
+                new_coins = await self.is_msg_about_new_coin(newest_msg)
+                if new_coins:
+                    for new_coin in new_coins:
+                        self.logger.info(f"... on a new coin {new_coin['coin_name']}!")
+                        new_coin['resp'] = RESPONSE_OK
 
-                    new_coin['resp'] = RESPONSE_OK
-                    await sock.send_json(new_coin)
+                    #await sock.send_json(new_coins)
+                    await sock.send_json(new_coins[:1]) #to be fixed
                     break
+
                 else:
                     self.logger.info('... but NOT about a new coin.')
             else:
@@ -121,7 +132,12 @@ class crawler_proc:
                     except FloodWaitError as e:
                         self.logger.info(f'FloodWaitError: {str(e)}')
                         # self.logger.info(e)
+                        self.logger.info('what the heck 1?')
                         await asyncio.sleep(60)
+                        self.logger.info('what the heck 2?')
+                        self.tclient = await create_telegram_client(self.auth['telegram_api_id'],
+                                                               self.auth['telegram_api_hash'],
+                                                               self.auth['telegram_phone'])
                         pass
 
 

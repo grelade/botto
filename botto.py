@@ -12,6 +12,13 @@ from crawler import crawler_proc
 from trader import trader_proc
 from data_harvester import harvester_proc
 
+async def ping_clients(bclient,tclient):
+
+    while True:
+        #logging.info('aaa')
+        await asyncio.sleep(600)
+        await bclient.ping()
+
 async def main(args):
     try:
 
@@ -47,7 +54,7 @@ async def main(args):
 
         tasks += [asyncio.create_task(cpu.run_server())]
 #         tasks += [asyncio.create_task(cpu.send_order())]
-        
+
         tasks += [asyncio.create_task(crawler.run_server())]
 
         tasks += [asyncio.create_task(trader.run_server())]
@@ -60,6 +67,8 @@ async def main(args):
         tasks += [asyncio.create_task(agent.agent_loop())]
 #         tasks += [asyncio.create_task(agent.send_order())]
         tasks += [asyncio.create_task(agent.run_server())]
+
+        tasks += [asyncio.create_task(ping_clients(bclient,tclient))]
 
         await asyncio.gather(*tasks)
 
